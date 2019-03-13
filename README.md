@@ -39,6 +39,8 @@ At the root of web youll find 3 php display files that you can integrate into yo
 
 If you ahve problems with the images flashing or refreshing during a write, the secondary img will help avoid this, but its not perfect, tweaking the refresh time in mlcamdisplay will yeild the absolute best results, as well you will need to change this is you wish to display at a diff fps.
 
+I should add, the web frontend for displaying images is not my forte, and Im sure theres a better way of doing it, so if anyone has one, please feel free to contribute or contact me.
+
 Finally, you may wonder about the bat files. I personally run this from a windows system (as it has a GPU) and then use one of my linux servers to serve the pages. The bat files can be used in combination with forever to manage the process.
 
 I highly recommend using forever as it will insure the process restarts if it fails (if youre using pushbullet, the occasional timeout can cause this, I should prob work on the error handling)
