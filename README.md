@@ -3,6 +3,11 @@ Its a tensorflow python script that detects people in realtime from rtsp stream 
 
 Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, and a few things still need to be changed in the primary script rather than just in config (I just forgot to add variables for them as not needed in my config)
 
+Screenshots - 
+
+Integrated into Organizrv2 - https://ibb.co/prd1K1D
+Sample output from a detection event - https://ibb.co/XjGqYrz
+
 First, the prereqs -
 
 You will need python3 plus a functioning tensorflow install - see here - https://www.tensorflow.org/install
