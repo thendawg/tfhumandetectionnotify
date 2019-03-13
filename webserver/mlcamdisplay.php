@@ -25,5 +25,17 @@ body {
 </div>
 	<img id="mlcam2" src="detectimgs/RD/frontyardtmp.jpg" \>
 </center>
+<script>
+document.getElementById("mlcam").addEventListener("error", myFunction);
+
+function myFunction() {
+document.getElementById("mlcam").src = "detectimgs/RD/driveway.jpg";
+}
+document.getElementById("mlcam2").addEventListener("error", myFunction);
+
+function myFunction() {
+document.getElementById("mlcam2").src = "detectimgs/RD/frontyard.jpg";
+}
+</script>
 </body>
 </html>
