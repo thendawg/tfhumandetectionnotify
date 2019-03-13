@@ -16,7 +16,7 @@ window.setInterval(function()
 {
     document.getElementById('mlcam').src = "detectimgs/RD/driveway.jpg?random="+new Date().getTime();
     document.getElementById('mlcam2').src = "detectimgs/RD/frontyard.jpg?random="+new Date().getTime();
-}, 500);
+}, 450);
 </script>
 <style>
 body {
