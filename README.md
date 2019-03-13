@@ -5,8 +5,9 @@ Preface: This is an ongoing project that started out solely for my use, so not e
 
 Screenshots - 
 
-Integrated into Organizrv2 - https://ibb.co/prd1K1D
-Sample output from a detection event - https://ibb.co/XjGqYrz
+Integrated into Organizrv2 - https://ibb.co/XjGqYrz
+
+Sample output from a detection event - https://ibb.co/prd1K1D
 
 First, the prereqs -
 
