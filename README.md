@@ -38,3 +38,9 @@ Finally, you may wonder about the bat files. I personally run this from a window
 I highly recommend using forever as it will insure the process restarts if it fails (if youre using pushbullet, the occasional timeout can cause this, I should prob work on the error handling)
 
 Forever - https://www.npmjs.com/package/forever
+
+If you use forever as recommended, with the bat scripts, all logging will occur to output/RD
+processlog.log gets rotated on each startup keeping 1 
+processerror.log is persistent
+
+I recommend a cron job for the cleanup.sh, I run this on my webserver to clear any output directories/jpgs over 5 days. I also need to write something to truncate the detection log, but I havent gotten around to it as it doesnt really get THAT big in terms of filesize.
