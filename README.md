@@ -1,7 +1,7 @@
 # tfhumandetectionnotify
 Its a tensorflow python script that detects people in realtime from rtsp stream and pushes notifications - I need to come up with a better name...
 
-Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, although I believe at this point most everything is configurable via the primary script.
+Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, although I believe at this point most everything is configurable via config.py.
 
 Changelog -
 3/13 - Everything that can be changed (afaik) now has been set to a variable that can be configured in config.py, if Im missing anything please let me know. Complete config and script for 1 cam has also been updated.
