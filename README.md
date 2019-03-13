@@ -3,7 +3,7 @@ Its a tensorflow python script that detects people in realtime from rtsp stream 
 
 Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, although I believe at this point most everything is configurable via the primary script.
 
-*IMPORTANT* In my infinite wisdom, I didnt think about the fact initially that this is setup for 2 cameras with predefined location names. I realize many of you may want to test this with a single camera, so Ive added a second script, (with single appended to the end) for this purpose. Simply delete the second url line from config and rename humandetectpushfoldersthreadedsingle.py to humandetectpushfoldersthreaded.py
+*IMPORTANT* In my infinite wisdom, I didnt think about the fact initially that this is setup for 2 cameras with predefined location names. I realize many of you may want to test this with a single camera, so Ive added a second script, (with single appended to the end) for this purpose. Simply delete the capurl2 line from config and rename humandetectpushfoldersthreadedsingle.py to humandetectpushfoldersthreaded.py
 
 In the future, I plan to make number of cameras and the location's name a configurable option. This will come with a php interface for easy config in the future :)
 
