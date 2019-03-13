@@ -3,9 +3,10 @@ Its a tensorflow python script that detects people in realtime from rtsp stream 
 
 Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, although I believe at this point most everything is configurable via the primary script.
 
-*IMPORTANT* In my infinite wisdom, I didnt think about the fact initially that this is setup for 2 cameras with predefined location names. I realize many of you may want to test this with a single camera, so Ive added a second script, (with single appended to the end) for this purpose. Simply delete the capurl2 line from config and rename humandetectpushfoldersthreadedsingle.py to humandetectpushfoldersthreaded.py
+Changelog -
+3/13 - Everything that can be changed (afaik) now has been set to a variable that can be configured in config.py, if Im missing anything please let me know. Complete config and script for 1 cam has also been updated.
 
-In the future, I plan to make number of cameras and the location's name a configurable option. This will come with a php interface for easy config in the future :)
+In the future, I plan to make number of cameras and the location's name a configurable option. This will come with a php interface for easy config in the future, for now, if youre using a single stream, overwrite humandetectpushfoldersthreaded.py and config.py with humandetectpushfoldersthreadedsingle.py and configsingle.py respectively.
 
 Screenshots - 
 
@@ -28,20 +29,16 @@ logging
 shutil
 pushbullet (optional)
 
-You will also need a model to run inference on. For the purpose of this README, we wont go into training your own model, but more info can be found in the tensorflow object detection API docs. Most of my testing has been done with pretrained models on the coco dataset available here - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md. Eventually I hope to have enough positive hit images (1000+) to retrain myself. For now, you can use any of these pre-trained COCO based models, as long as they return boxes, not masks. You will need to edit the path to the frozen inference graph, unless you use faster_rcnn_inception_v2_coco which is what was used during the build of the script. Im now testing faster_rcnn_resnet101_coco as it supposedly has a bit higher confidence rate and is still able to process 2 streams at 2fps with ease on my GTX1060. Feel free to tweak and test - the path that you need to point to the frozen inference graph is on line 126.
+You will also need a model to run inference on. For the purpose of this README, we wont go into training your own model, but more info can be found in the tensorflow object detection API docs. Most of my testing has been done with pretrained models on the coco dataset available here - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md. Eventually I hope to have enough positive hit images (1000+) to retrain myself. For now, you can use any of these pre-trained COCO based models, as long as they return boxes, not masks. You will need to edit the path to the frozen inference graph in config.py. Im now testing faster_rcnn_resnet101_coco as it supposedly has a bit higher confidence rate and is still able to process 2 streams at 2fps with ease on my GTX1060.
 
-MOST of the things that need to be edited for your config are in config.py, however, one thing in specific is not, if youre using pushbullet to push notifications, you will need to edit the url it pushes in the primary py to match the url your webserver resides at. I personally use an address here that hits a reverse proxy with https and auth thats open to the web, so I can see the images when Im away from home.
+As may be obvious, this script was designed to run on one system that has a GPU installed and output the images to a directory so that they can be served by a webserver, in my case on a different machine. These directories are configurable in config.py
 
-**EDIT** The url is now set via the config file
-
-As may be obvious, this script was designed to run on one system that has a GPU installed and output the images to a directory so that they can be served by a webserver, in my case on a different machine. Youre welcome to edit and move things as you desire, as mentioned, I plan to make this configurable in the future via the config, but here is how its setup to operate by default.
-
-Current images are output to /output/RD/ (on my system this is a tmpfs on my NAS so disk isnt hit by constant writes) the mlcamdisplay will pull from these images to generate the real time viewing
-When a person is detected, the resulting dir is output to /output/
+Current images are output to livedir (on my system this is a tmpfs on my NAS so disk isnt hit by constant writes) the mlcamdisplay.php will pull from these images to generate the real time viewing
+When a person is detected, the resulting dir is output to maindir
 The script auto copies a php file into the dir that will display all images and links it in the log.
 At the root of web youll find 3 php display files that you can integrate into your Organizr dashboard like I did, or another page, the smaller log page has a text link to the full log, so you dont have to display it at all times.
 
-If you ahve problems with the images flashing or refreshing during a write, the secondary img will help avoid this, but its not perfect, tweaking the refresh time in mlcamdisplay will yeild the absolute best results, as well you will need to change this is you wish to display at a diff fps.
+If you have problems with the images flashing or refreshing during a write, the secondary img will help avoid this, but its not perfect, tweaking the refresh time in mlcamdisplay will yeild the absolute best results, as well you will need to change this is you wish to display at a diff fps.
 
 *UPDATE* The latest changes Ive made to the java on the display page seems to work perfect in Firefox/Edge to render the alt image if the primary is unavailable, however,  Chrome seems to have some major issues with the way Im doing this. Ill look into it at some point, but to be honest, the live image view is more for my purposes than what I want this project for long term (push notifications with images, which seems to be solid). As well, I know there must be a better way of doing this with node or something - see below...
 
@@ -53,7 +50,7 @@ I highly recommend using forever as it will insure the process restarts if it fa
 
 Forever - https://www.npmjs.com/package/forever
 
-If you use forever as recommended, with the bat scripts, all logging will occur to output/RD
+If you use forever as recommended, with the bat scripts, all logging will occur to output/RD, or you can change this in the bat.
 processlog.log gets rotated on each startup keeping 1 
 processerror.log is persistent
 
