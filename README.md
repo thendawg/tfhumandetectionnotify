@@ -44,3 +44,5 @@ processlog.log gets rotated on each startup keeping 1
 processerror.log is persistent
 
 I recommend a cron job for the cleanup.sh, I run this on my webserver to clear any output directories/jpgs over 5 days. I also need to write something to truncate the detection log, but I havent gotten around to it as it doesnt really get THAT big in terms of filesize.
+
+As well, Ive noticed running this for very long periods of time (days) can possibly contribute to increased frame latency (possibly more buffer issues?) But restarting the process nightly seems to resolve it, hence the restat .bat file. In windows, I setup a task schedule to run it nightly. Soon I will make .sh equivs of this for Linux :) You can automate with cron of course.
