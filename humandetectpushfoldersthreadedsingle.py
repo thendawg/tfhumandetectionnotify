@@ -80,7 +80,6 @@ class FrameGrab:
     # This is the part that actually grabs the frames in loop, I've kept an extra grab (without read) to pull one frame from buffer so we are always within 1-2 frames of most current. You may need to add more (or remove) the entry if youre using a diff fps or resolution (which could cause each frame grab to take longer)
     def get(self):
         while True:
-            #self.cap.grab() On second thought, this is seeming to not be benificial when using multithreading, commenting out for now, will test further.
             (self.grabbed, self.frame) = self.cap.read()               
     
 def analyzeframe(img, boxes, scores, classes, num):
@@ -92,7 +91,7 @@ def analyzeframe(img, boxes, scores, classes, num):
             y2eval = int(box[0])
             scoreint = str(round(scores[i], 3))
             # This is a filter to determine if any vertex of the bounding box for a detected person is within the part of the image I care about ie: not across the street (remember opencv uses rows, so top is 0)
-            if (yeval > 150) or (y2eval > 150):
+            if (yeval > 0) or (y2eval > 0):
                 # Draws the box, puts a confidence score under it, and alerts that we have detected a human
                 cv2.rectangle(img,(box[1],box[0]),(box[3],box[2]),(0,0,255),2)
                 cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,0.7,(0,0,255),1,cv2.LINE_AA)
