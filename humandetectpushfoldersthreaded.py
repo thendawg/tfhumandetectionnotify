@@ -80,7 +80,7 @@ class FrameGrab:
     # This is the part that actually grabs the frames in loop, I've kept an extra grab (without read) to pull one frame from buffer so we are always within 1-2 frames of most current. You may need to add more (or remove) the entry if youre using a diff fps or resolution (which could cause each frame grab to take longer)
     def get(self):
         while True:
-            self.cap.grab()
+            #self.cap.grab() On second thought, this is seeming to not be benificial when using multithreading, commenting out for now, will test further.
             (self.grabbed, self.frame) = self.cap.read()               
     
 def analyzeframe(img, boxes, scores, classes, num):
