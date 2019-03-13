@@ -15,7 +15,9 @@ Sample output from a detection event - https://ibb.co/prd1K1D
 
 First, the prereqs -
 
-You will need python3 plus a functioning tensorflow install - see here - https://www.tensorflow.org/install
+You will need python3.5 plus a functioning tensorflow install - see here - https://www.tensorflow.org/install
+
+If youre using modern hardware theres likely a binary of sorts for install, in my case I had to build from source, which can be, problematic, but tensorflow does have a decent community.
 
 Use pip to install the prereqs and their dependencies -
 
