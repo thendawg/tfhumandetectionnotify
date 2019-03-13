@@ -82,7 +82,7 @@ class FrameGrab:
         while True:
             (self.grabbed, self.frame) = self.cap.read()               
     
-def analyzeframe(img, boxes, scores, classes, num):
+def analyzeframe(img, boxes, scores, classes, num, hfilter, fsize):
     humandetected = 0
     for i in range(len(boxes)):
         if classes[i] == 1 and scores[i] > threshold:
@@ -90,40 +90,40 @@ def analyzeframe(img, boxes, scores, classes, num):
             yeval = int(box[2])
             y2eval = int(box[0])
             scoreint = str(round(scores[i], 3))
-            # This is a filter to determine if any vertex of the bounding box for a detected person is within the part of the image I care about ie: not across the street (remember opencv uses rows, so top is 0)
-            if (yeval > 0) or (y2eval > 0):
+            # *This is now set via config* This is a filter to determine if any vertex of the bounding box for a detected person is within the part of the image I care about ie: not across the street (remember opencv uses rows, so top is 0) Basically if you set this value to say 100, then at least some part of the detected object must be outside fo the top 100 rows/pixels in the image. 
+            if (yeval > hfilter) or (y2eval > hfilter):
                 # Draws the box, puts a confidence score under it, and alerts that we have detected a human
                 cv2.rectangle(img,(box[1],box[0]),(box[3],box[2]),(0,0,255),2)
-                cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,0.7,(0,0,255),1,cv2.LINE_AA)
+                cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,fsize,(0,0,255),1,cv2.LINE_AA)
                 humandetected = 1
             else: 
                 # Still does the above, but no alert and its in white
                 cv2.rectangle(img,(box[1],box[0]),(box[3],box[2]),(211,211,211),2)
-                cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,0.7,(211,211,211),1,cv2.LINE_AA)    
+                cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,fsize,(211,211,211),1,cv2.LINE_AA)    
     return img, humandetected
     
-def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, pbenabled, url, yord):
+def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, pbenabled, url, maindir, yord):
     # Check to see how long its been since the last person detected, this avoids a new entry/notification for people hanging around. Tweak as needed
     if timeelap > timebetweenevents:
         # This process builds a directory structure based on time since epoch + driveway/frontyard and then writes the image into that directory as well as a php file to display the images. It also pushes the notification and writes to our log.
         dirtime = str(round(time.time()))
-        os.mkdir('output/' + yord + dirtime)
-        cv2.imwrite('output/' + yord + dirtime + '/' + dirtime + yord + '.jpg', img)
-        shutil.copy2('showimgs.php', 'output/' + yord + dirtime)
+        os.mkdir(maindir + yord + dirtime)
+        cv2.imwrite(maindir + yord + dirtime + '/' + dirtime + yord + '.jpg', img)
+        shutil.copy2('showimgs.php', maindir + yord + dirtime)
         if pbenabled == 1:
             pb.push_link("Person Detected " + yord, url + yord + dirtime + "/showimgs.php", channel=pbipcam_channel)
-        logging.warning('<a href="detectimgs/' + yord + dirtime + '/showimgs.php" target="_blank">Person detected ' + yord + '</a>') 
+        logging.warning('<a href="' + url + yord + dirtime + '/showimgs.php" target="_blank">Person detected ' + yord + '</a>') 
         lastlogtime = int(round(time.time()))
     else:
         # If were still detecting people, but its within the elapse interval, well write the frame to the same directory as before.
         linktime = str(round(time.time()))
-        cv2.imwrite('output/' + yord + dirtime + '/' + linktime + yord + '.jpg', img)
+        cv2.imwrite(maindir + yord + dirtime + '/' + linktime + yord + '.jpg', img)
         lastlogtime = int(round(time.time()))
     return lastlogtime, dirtime
     
 
 if __name__ == "__main__":
-    model_path = 'faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
+    model_path = str(config.model_path)
     threshold = config.threshold
     timebetweenevents = config.timebetweenevents
     coloraftertime = config.coloraftertime
@@ -139,9 +139,15 @@ if __name__ == "__main__":
         pb = Pushbullet(config.pbapikey)
         pbipcam_channel = pb.get_channel(config.pbchannelname)
     # Set some initial values
+    hfilterdr = config.hfilterdr
+    maindir = str(config.maindir)
+    livedir = str(config.livedir)
+    fsize = config.fontsize
+    hsizeout = config.imgwidth
+    vsizeout = config.imgheight
     url = str(config.url)
     lastlogtimedr = int(round(time.time()))
-    drtext = str("driveway")
+    drtext = str(config.cam1text)
     dirtimedr = "0"
     
     while True:
@@ -152,24 +158,25 @@ if __name__ == "__main__":
         # Feed them to tensorflow inference 
         boxes, scores, classes, num = odapi.processFrame(img)
         # Determine if a human was detected and draw a bounding box if so along with scores
-        imgoutdrive, humandetectdrive = analyzeframe(img, boxes, scores, classes, num)   
+        imgoutdrive, humandetectdrive = analyzeframe(img, boxes, scores, classes, num, hfilterdr, fsize)    
         curtime = int(round(time.time()))
         timeelapdrive = curtime-lastlogtimedr
         # Add timestamps
-        cv2.putText(imgoutdrive,timestamp,(20, 23),cv2.FONT_HERSHEY_DUPLEX,0.6,(211,211,211),1,cv2.LINE_AA)
+        cv2.putText(imgoutdrive,timestamp,(20, 23),cv2.FONT_HERSHEY_DUPLEX,fsize,(211,211,211),1,cv2.LINE_AA)
         # If a person was detected in the frame, run a function that creates a display directory, saves the frame, sends us a push notification, and writes to the log.
         if humandetectdrive == 1:
-            lastlogtimedr, dirtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, pb, pbipcam_channel, timebetweenevents, pbenabled, url, drtext)
+            lastlogtimedr, dirtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, pb, pbipcam_channel, timebetweenevents, pbenabled, url, maindir, drtext)
         # Resize the images
-        imgresizedr = cv2.resize(imgoutdrive,(375, 245))
+        imgresizedr = cv2.resize(imgoutdrive,(hsizeout, vsizeout))
+        imgresizeyd = cv2.resize(imgoutyard,(hsizeout, vsizeout))
         # Write the images to be served by an Apache server
-        cv2.imwrite('output/RD/drivewaytmp.jpg', imgresizedr, [cv2.IMWRITE_JPEG_PROGRESSIVE, 1,cv2.IMWRITE_JPEG_QUALITY, 80])
+        cv2.imwrite(livedir + drtext + 'tmp.jpg', imgresizedr, [cv2.IMWRITE_JPEG_PROGRESSIVE, 1,cv2.IMWRITE_JPEG_QUALITY, 80])
         # Color the log background based on the time since last event
         if timeelapdrive < coloraftertime:
-            colorf = open("output/color.txt", "w")
+            colorf = open(maindir + "color.txt", "w")
             colorf.write("#720808;")
         else:
-            colorf = open("output/color.txt", "w")
+            colorf = open(maindir + "color.txt", "w")
             colorf.write("#1f1f1f;")
         print("Time since last driveway log:", timeelapdrive)
         sys.stdout.flush()
@@ -181,6 +188,6 @@ if __name__ == "__main__":
             sleeptime = frametime-processtime
             time.sleep(sleeptime)
         # Here we copy the images to a second file after the sleep. This provides redundancy incase the browser tries to grab the image while its being written, we can provide a second image location for "onerror". (The reason why you see the "-.010" above is to account for the copy time. You might need to tweak for your system.
-        shutil.copyfile('output/RD/drivewaytmp.jpg', 'output/RD/driveway.jpg')
+        shutil.copyfile(livedir + drtext + 'tmp.jpg', livedir + drtext + '.jpg')
         final_time = time.time()
         print("Elapsed Time:", final_time-start_time)

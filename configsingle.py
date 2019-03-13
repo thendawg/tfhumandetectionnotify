@@ -2,7 +2,6 @@
 model_path = 'faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'
 # RTSP Stream URL's to capture video - I am using an mjpeg secondary stream that outputs 704x480 at 5fps. This seems to be a pretty standard substream option, if you use the main stream or something else, you may have to tweak other variables such as the text size for scores, the number of frames grabbed before return, etc.
 capurl = "rtsp://username:password@ipaddress:554/cam/realmonitor?channel=1&subtype=1"
-capurl2 = "rtsp://username:password@ipaddress:554/cam/realmonitor?channel=1&subtype=1"
 # Score threshold for person to be detected
 threshold = 0.86
 # How long (in seconds) the detection log will stay red after a person is last detected.
@@ -19,10 +18,8 @@ pbchannelname = 'channelname'
 url = 'https://someurl/output/'
 # Horizontal filters as mentioned 0 is the top of the image, if you put something other than 0 here it will not detect persons whos bounding box is entirely outside (above) this value - read the main py to understand further.
 hfilterdr = 0
-hfilteryd = 0
 # Variables below set the names for each camera that are used for the log entries, push notifications, and directory/image save names. This DOES NOT change the name output for the live imgs, this will come later.
 cam1text =  'driveway'
-cam2text = 'frontyard'
 # These are the output directories, saved images to be served by your webserver for access via the above url are output to maindir, livedir is only used for the constantly refreshing images. The trailing slash is required so that if you wish to have everything in the same top level directory, just make this ''
 maindir = 'output/'
 livedir = 'output/RD/'
