@@ -15,12 +15,12 @@ You will need python3 plus a functioning tensorflow install - see here - https:/
 
 Use pip to install the prereqs and their dependencies -
 
-*numpy
-*cv2
-*msvcrt
-*logging
-*shutil
-*pushbullet (optional)
+numpy
+cv2
+msvcrt
+logging
+shutil
+pushbullet (optional)
 
 MOST of the things that need to be edited for your config are in config.py, however, one thing in specific is not, if youre using pushbullet to push notifications, you will need to edit the url it pushes in the primary py to match the url your webserver resides at. I personally use an address here that hits a reverse proxy with https and auth thats open to the web, so I can see the images when Im away from home.
 
