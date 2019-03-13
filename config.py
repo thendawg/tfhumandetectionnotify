@@ -13,3 +13,5 @@ frametime = .500
 pbenabled = 0
 pbapikey = 'apikey'
 pbchannelname = 'channelname'
+# URL to your server for pb links - this is the url to get to /output (you must include /output) 
+url = 'https://someurl/output/'
