@@ -103,7 +103,7 @@ def analyzeframe(img, boxes, scores, classes, num):
                 cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,0.7,(211,211,211),1,cv2.LINE_AA)    
     return img, humandetected
     
-def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, pbenabled, yord):
+def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, pbenabled, url, yord):
     # Check to see how long its been since the last person detected, this avoids a new entry/notification for people hanging around. Tweak as needed
     if timeelap > timebetweenevents:
         # This process builds a directory structure based on time since epoch + driveway/frontyard and then writes the image into that directory as well as a php file to display the images. It also pushes the notification and writes to our log.
@@ -112,7 +112,7 @@ def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, p
         cv2.imwrite('output/' + yord + dirtime + '/' + dirtime + yord + '.jpg', img)
         shutil.copy2('showimgs.php', 'output/' + yord + dirtime)
         if pbenabled == 1:
-            pb.push_link("Person Detected " + yord, "https://yourexternalurl/detectimgs/" + yord + dirtime + "/showimgs.php", channel=pbipcam_channel)
+            pb.push_link("Person Detected " + yord, url + yord + dirtime + "/showimgs.php", channel=pbipcam_channel)
         logging.warning('<a href="detectimgs/' + yord + dirtime + '/showimgs.php" target="_blank">Person detected ' + yord + '</a>') 
         lastlogtime = int(round(time.time()))
     else:
@@ -142,6 +142,7 @@ if __name__ == "__main__":
         pb = Pushbullet(config.pbapikey)
         pbipcam_channel = pb.get_channel(config.pbchannelname)
     # Set some initial values
+    url = str(config.url)
     lastlogtimedr = int(round(time.time()))
     lastlogtimeyd = int(round(time.time()))
     drtext = str("driveway")
@@ -169,9 +170,9 @@ if __name__ == "__main__":
         cv2.putText(imgoutyard,timestamp,(20, 23),cv2.FONT_HERSHEY_DUPLEX,0.6,(211,211,211),1,cv2.LINE_AA)
         # If a person was detected in the frame, run a function that creates a display directory, saves the frame, sends us a push notification, and writes to the log.
         if humandetectdrive == 1:
-            lastlogtimedr, dirtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, pb, pbipcam_channel, timebetweenevents, pbenabled, drtext)
+            lastlogtimedr, dirtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, pb, pbipcam_channel, timebetweenevents, pbenabled, url, drtext)
         if humandetectyard == 1:
-            lastlogtimeyd, dirtimeyd = humanevent(imgoutyard, timeelapyard, dirtimeyd, pb, pbipcam_channel, timebetweenevents, pbenabled, ydtext)
+            lastlogtimeyd, dirtimeyd = humanevent(imgoutyard, timeelapyard, dirtimeyd, pb, pbipcam_channel, timebetweenevents, pbenabled, url, ydtext)
         # Resize the images
         imgresizedr = cv2.resize(imgoutdrive,(375, 245))
         imgresizeyd = cv2.resize(imgoutyard,(375, 245))
