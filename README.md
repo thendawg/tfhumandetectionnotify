@@ -28,6 +28,8 @@ logging
 shutil
 pushbullet (optional)
 
+You will also need a model to run inference on. For the purpose of this README, we wont go into training your own model, but more info can be found in the tensorflow object detection API docs. Most of my testing has been done with pretrained models on the coco dataset available here - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md. Eventually I hope to have enough positive hit images (1000+) to retrain myself. For now, you can use any of these pre-trained COCO based models, as long as they return boxes, not masks. You will need to edit the path to the frozen inference graph, unless you use faster_rcnn_inception_v2_coco which is what was used during the build of the script. Im now testing faster_rcnn_resnet101_coco as it supposedly has a bit higher confidence rate and is still able to process 2 streams at 2fps with ease on my GTX1060. Feel free to tweak and test - the path that you need to point to the frozen inference graph is on line 126.
+
 MOST of the things that need to be edited for your config are in config.py, however, one thing in specific is not, if youre using pushbullet to push notifications, you will need to edit the url it pushes in the primary py to match the url your webserver resides at. I personally use an address here that hits a reverse proxy with https and auth thats open to the web, so I can see the images when Im away from home.
 
 **EDIT** The url is now set via the config file
