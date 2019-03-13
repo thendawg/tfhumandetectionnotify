@@ -39,6 +39,8 @@ At the root of web youll find 3 php display files that you can integrate into yo
 
 If you ahve problems with the images flashing or refreshing during a write, the secondary img will help avoid this, but its not perfect, tweaking the refresh time in mlcamdisplay will yeild the absolute best results, as well you will need to change this is you wish to display at a diff fps.
 
+*UPDATE* The latest changes Ive made to the java on the display page seems to work perfect in Firefox/Edge to render the alt image if the primary is unavailable, however,  Chrome seems to have some major issues with the way Im doing this. Ill look into it at some point, but to be honest, the live image view is more for my purposes than what I want this project for long term (push notifications with images, which seems to be solid). As well, I know there must be a better way of doing this with node or something - see below...
+
 I should add, the web frontend for displaying images is not my forte, and Im sure theres a better way of doing it, so if anyone has one, please feel free to contribute or contact me.
 
 Finally, you may wonder about the bat files. I personally run this from a windows system (as it has a GPU) and then use one of my linux servers to serve the pages. The bat files can be used in combination with forever to manage the process.
