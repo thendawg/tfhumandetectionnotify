@@ -15,13 +15,13 @@ Currently this relies on the same config and web output files as the other revs 
 Future releases which are able to iterate any number of streams will be based off of this design, so I thought Id show what Im working on. As well, I plan to further thread the image processing (drawing boxes, scores, etc) as well as the img writing. This will all be in a packaged release at somepoint - hopefully with a better web interface as well!
 
 
-Screenshots - 
+**Screenshots**
 
 Integrated into Organizrv2 - https://ibb.co/XjGqYrz
 
 Sample output from a detection event - https://ibb.co/prd1K1D
 
-First, the prereqs -
+**Prereqs**
 
 You will need python3.5 plus a functioning tensorflow install - see here - https://www.tensorflow.org/install
 
@@ -37,6 +37,8 @@ shutil
 pushbullet (optional)
 
 You will also need a model to run inference on. For the purpose of this README, we wont go into training your own model, but more info can be found in the tensorflow object detection API docs. Most of my testing has been done with pretrained models on the coco dataset available here - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md. Eventually I hope to have enough positive hit images (1000+) to retrain myself. For now, you can use any of these pre-trained COCO based models, as long as they return boxes, not masks. You will need to edit the path to the frozen inference graph in config.py. Im now testing faster_rcnn_resnet101_coco as it supposedly has a bit higher confidence rate and is still able to process 2 streams at 2fps with ease on my GTX1060.
+
+**How it works...**
 
 As may be obvious, this script was designed to run on one system that has a GPU installed and output the images to a directory so that they can be served by a webserver, in my case on a different machine. These directories are configurable in config.py
 
