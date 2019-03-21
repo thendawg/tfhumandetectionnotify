@@ -55,7 +55,7 @@ a:active {
 <center>
 <h3>Camera Detection Log</h3>
 <?php
-$fArray = file("detectimgs/detect.log");
+$fArray = file("output/detect.log");
 $len = sizeof($fArray);
 for($i=$len -50;$i<$len ;$i++)
 {
