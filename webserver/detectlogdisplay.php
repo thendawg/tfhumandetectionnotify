@@ -11,7 +11,7 @@ window.onload = timedRefresh(3000);
 <style>
 body {
 <?php
-$color = file_get_contents("detectimgs/color.txt");
+$color = file_get_contents("output/color.txt");
 echo '   background-color:' . $color;
 ?>
     color: #d8d9da;
@@ -60,7 +60,7 @@ a:active {
 <center>
 <a href="detectlogdisplayfull.php" target="_blank"><h3>Camera Detection Log</h3></a>
 <?php
-$fArray = file("detectimgs/detect.log");
+$fArray = file("output/detect.log");
 $len = sizeof($fArray);
 for($i=$len -10;$i<$len ;$i++)
 {
