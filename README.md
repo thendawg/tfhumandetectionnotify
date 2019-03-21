@@ -8,6 +8,13 @@ Changelog -
 
 In the future, I plan to make number of cameras and the location's name a configurable option. This will come with a php interface for easy config in the future, for now, if youre using a single stream, overwrite humandetectpushfoldersthreaded.py and config.py with humandetectpushfoldersthreadedsingle.py and configsingle.py respectively.
 
+**THREADED TF BETA**
+
+Currently this relies on the same config and web output files as the other revs so I havent branched it yet but will soon as this moves forward. This beta is only compatible with 2 stream sources and will use multiple threads for tensorflow, essentially cutting the image processing time in half. Ive been testing with a 3GB 1060, and although it gives me messages about vram potentially impacting performance, Ive restricted it all the way down to 1GB VRAM and have seen no actual performance impact. In this iteration Ive also dramatically improved the stream capture threading.
+
+Future releases which are able to iterate any number of streams will be based off of this design, so I thought Id show what Im working on. As well, I plan to further thread the image processing (drawing boxes, scores, etc) as well as the img writing. This will all be in a packaged release at somepoint - hopefully with a better web interface as well!
+
+
 Screenshots - 
 
 Integrated into Organizrv2 - https://ibb.co/XjGqYrz
