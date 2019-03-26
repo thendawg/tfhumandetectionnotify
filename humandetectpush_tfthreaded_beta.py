@@ -46,7 +46,7 @@ class DetectorAPI:
     
     def processFrame(self, q, q_img):
         while True:
-            # Get a fresh frame each time processFrame executes then clear the queue after 20 iterations - this prevents too much memory from being consumed.
+            # Get a fresh frame each time processFrame executes.
             self.image = q_img.get()
             q_img.task_done()
             # Expand dimensions since the trained_model expects images to have shape: [1, None, None, 3]
