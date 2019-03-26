@@ -45,21 +45,10 @@ class DetectorAPI:
         self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
     
     def processFrame(self, q, q_img):
-        qcount = 0
         while True:
             # Get a fresh frame each time processFrame executes then clear the queue after 20 iterations - this prevents too much memory from being consumed.
             self.image = q_img.get()
             q_img.task_done()
-            if qcount > 20:
-                q_img.task_done()
-                q_img.mutex.acquire()
-                q_img.queue.clear()
-                q_img.all_tasks_done.notify_all()
-                q_img.unfinished_tasks = 0
-                q_img.mutex.release()
-                qcount = 0
-            else:
-                qcount += 1
             # Expand dimensions since the trained_model expects images to have shape: [1, None, None, 3]
             image_np_expanded = np.expand_dims(self.image, axis=0)
             # Actual detection.
@@ -88,19 +77,37 @@ class FrameGrab:
 
     def __init__(self, src=0):
         self.cap = cv2.VideoCapture(src)
-        (self.grabbed, self.frame) = self.cap.read()
         
     # This is the part that actually grabs the frames in loop and puts them in queue
     def get(self, q_img):
         while True:
-            (self.grabbed, self.frame) = self.cap.read()    
-            q_img.put(self.frame)
-                
+            self.cap.grab()    
+            if q_img.qsize() == 0:
+                (self.grabbed, self.frame) = self.cap.retrieve()
+                q_img.put(self.frame)
+            
+# Class for seperate thread for PushBullet Notifications - Only spawns if pb is enabled in config.
+
+class PBAsync:
+    
+    # Checks if PB queue is empty, if it is not, push alert message from queue and task_done
+    def sendpbalert(q_pb, pbapikey, pbch):
+        pb = Pushbullet(pbapikey)
+        pbipcam_channel = pb.get_channel(pbch)
+        while True:
+            if q_pb.qsize() > 0:
+                pbmsg = q_pb.get()
+                q_pb.task_done()
+                pb.push_link(pbmsg[0], pbmsg[1], channel=pbipcam_channel)
+            else:
+                time.sleep(.10)
+            
             
     
 def analyzeframe(img, boxes, scores, classes, num, hfilter, fsize):
     humandetected = 0
     alertpb = 0
+    
     # For function to iterate through all detection boxes and draw those that are over the cutoff and correct class (1 - Human) 
     for i in range(len(boxes)):
         if classes[i] == 1 and scores[i] > threshold:
@@ -118,6 +125,7 @@ def analyzeframe(img, boxes, scores, classes, num, hfilter, fsize):
                 # Still does the above, but no alert and its in white
                 cv2.rectangle(img,(box[1],box[0]),(box[3],box[2]),(211,211,211),2)
                 cv2.putText(img,scoreint,(box[1]+5,box[2]+25),cv2.FONT_HERSHEY_DUPLEX,fsize,(211,211,211),1,cv2.LINE_AA)
+    
     # A seperate for function to evaluate if scores of bounding boxes detected meet the second (higher) threshold for a pb notification.
     for i in range(len(boxes)):
         if classes[i] == 1 and scores[i] > thresholdpb:
@@ -127,7 +135,7 @@ def analyzeframe(img, boxes, scores, classes, num, hfilter, fsize):
                 alertpb = 1                
     return img, humandetected, alertpb
     
-def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, pbenabled, url, maindir, alertpb, yord, timeelappb, lastpbtime):
+def humanevent(img, timeelap, dirtime, timebetweenevents, pbenabled, url, maindir, alertpb, yord, timeelappb, lastpbtime, q_pb):
     # Check to see how long its been since the last person detected, this avoids a new entry/notification for people hanging around. Tweak as needed       
     if timeelap > timebetweenevents:
         # This process builds a directory structure based on time since epoch + driveway/frontyard and then writes the image into that directory as well as a php file to display the images. It also pushes the notification and writes to our log.
@@ -142,9 +150,13 @@ def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, p
         linktime = str(round(time.time()))
         cv2.imwrite(maindir + yord + dirtime + '/' + linktime + yord + '.jpg', img)
         lastlogtime = int(round(time.time()))
+    
     # Seperately evaluate the PushBullet function, this requires the higher score threshold to be met and tracks the time since last pb push seperate from the last log entry.
     if (timeelappb > timebetweenevents) and (pbenabled == 1) and (alertpb == 1):
-        pb.push_link("Person Detected " + yord, url + yord + dirtime + "/showimgs.php", channel=pbipcam_channel)
+        # Puts pb notification in queue
+        pbp1 = str("Person Detected " + yord)
+        pbp2 = str(url + yord + dirtime + "/showimgs.php")
+        q_pb.put([pbp1, pbp2])
         lastpbtime = int(round(time.time()))
     elif (pbenabled == 1) and (alertpb == 1):
         lastpbtime = int(round(time.time()))
@@ -152,6 +164,7 @@ def humanevent(img, timeelap, dirtime, pb, pbipcam_channel, timebetweenevents, p
     
 
 if __name__ == "__main__":
+
     # Set some initial values
     model_path = str(config.model_path)
     threshold = config.threshold
@@ -175,22 +188,29 @@ if __name__ == "__main__":
     dirtimedr = "0"
     dirtimeyd = "0"
     frametime = config.frametime-.020
+    pbenabled = config.pbenabled
+    
     # Setup the logfile format to look pretty when displayed on a webpage
     logging.basicConfig(filename='output/detect.log', format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-    # Setup for pushbullet if enabled, you need to install the pushbullet py from here if you want to use this for push notifications - https://github.com/rbrcsk/pushbullet.py
-    pbenabled = config.pbenabled
-    if pbenabled == 1:
-        pb = Pushbullet(config.pbapikey)
-        pbipcam_channel = pb.get_channel(config.pbchannelname)
+    
     # Setup the capture threads and queues
-    q_d_img = LifoQueue()
-    q_y_img = LifoQueue()
+    q_d_img = Queue(maxsize=1)
+    q_y_img = Queue(maxsize=1)
     capurl = config.capurl
     capurl2 = config.capurl2
     capdt = Thread(name='capdrivet', target=FrameGrab(capurl).get, daemon = True, args=(q_d_img,))
     capyt = Thread(name='capyardt', target=FrameGrab(capurl2).get, daemon = True, args=(q_y_img,))
     capdt.start()
     capyt.start()
+    
+    # Spawn a seperate process and queue for PushBullet Notifications (Makes them async) - If PB is enabled in config - see README for additional pushbullet info. 
+    if pbenabled == 1:
+        pbapikey = config.pbapikey
+        pbch = config.pbchannelname   
+        q_pb = Queue()
+        pbt = Thread(name='pushbullett', target=PBAsync.sendpbalert, daemon = True, args=(q_pb, pbapikey, pbch))
+        pbt.start()
+    
     # Build a queue and start a seperate thread for each stream being analyzed - the maxsize of 1 for the queue insures that TF cant outrun the image processing/output. 
     q_d = Queue(maxsize=1)
     q_y = Queue(maxsize=1)
@@ -200,37 +220,46 @@ if __name__ == "__main__":
     yardt.start()
     
     while True:
+        
         # Get timestamps, start of process time
         start_time = time.time()
         timestamp = time.ctime()
+        
         # Retrieve TF results from queues
         img, boxes, scores, classes, num = q_d.get()
         q_d.task_done()
         img2, boxes2, scores2, classes2, num2 = q_y.get()
         q_y.task_done()
+        
         # Determine if a human was detected and draw a bounding box if so along with scores
         imgoutdrive, humandetectdrive, alertpbdr = analyzeframe(img, boxes, scores, classes, num, hfilterdr, fsize)
         imgoutyard, humandetectyard, alertpbyd = analyzeframe(img2, boxes2, scores2, classes2, num2, hfilteryd, fsize)         
+        
         # Determine time since last PB and log entry events
         curtime = int(round(time.time()))
         timeelapdrive = curtime-lastlogtimedr
         timeelapyard = curtime-lastlogtimeyd
         timeelappbdr = curtime-lastpbtimedr
         timeelappbyd = curtime-lastpbtimeyd
+        
         # Add timestamps
         cv2.putText(imgoutdrive,timestamp,(20, 23),cv2.FONT_HERSHEY_DUPLEX,fsize,(211,211,211),1,cv2.LINE_AA)
         cv2.putText(imgoutyard,timestamp,(20, 23),cv2.FONT_HERSHEY_DUPLEX,fsize,(211,211,211),1,cv2.LINE_AA)
+        
         # If a person was detected in the frame, run a function that creates a display directory, saves the frame, sends us a push notification, and writes to the log.
         if humandetectdrive == 1:
-            lastlogtimedr, dirtimedr, lastpbtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, pb, pbipcam_channel, timebetweenevents, pbenabled, url, maindir, alertpbdr, drtext, timeelappbdr, lastpbtimedr)
+            lastlogtimedr, dirtimedr, lastpbtimedr = humanevent(imgoutdrive, timeelapdrive, dirtimedr, timebetweenevents, pbenabled, url, maindir, alertpbdr, drtext, timeelappbdr, lastpbtimedr, q_pb)
         if humandetectyard == 1:
-            lastlogtimeyd, dirtimeyd, lastpbtimeyd = humanevent(imgoutyard, timeelapyard, dirtimeyd, pb, pbipcam_channel, timebetweenevents, pbenabled, url, maindir, alertpbyd, ydtext, timeelappbyd, lastpbtimeyd)
+            lastlogtimeyd, dirtimeyd, lastpbtimeyd = humanevent(imgoutyard, timeelapyard, dirtimeyd, timebetweenevents, pbenabled, url, maindir, alertpbyd, ydtext, timeelappbyd, lastpbtimeyd, q_pb)
+        
         # Resize the images
         imgresizedr = cv2.resize(imgoutdrive,(hsizeout, vsizeout))
         imgresizeyd = cv2.resize(imgoutyard,(hsizeout, vsizeout))
+        
         # Write the images to be served by an Apache server
         cv2.imwrite(livedir + drtext + 'tmp.jpg', imgresizedr, [cv2.IMWRITE_JPEG_PROGRESSIVE, 1,cv2.IMWRITE_JPEG_QUALITY, 80])
         cv2.imwrite(livedir + ydtext + 'tmp.jpg', imgresizeyd, [cv2.IMWRITE_JPEG_PROGRESSIVE, 1,cv2.IMWRITE_JPEG_QUALITY, 80])
+        
         # Color the log background based on the time since last event
         if (timeelapdrive < coloraftertime) or (timeelapyard < coloraftertime):
             colorf = open(maindir + "color.txt", "w")
@@ -242,11 +271,20 @@ if __name__ == "__main__":
         #For debugging - print("Time since last frontyard log:", timeelapyard)
         sys.stdout.flush()
         end_time = time.time()
+        
+        # Check to make sure PB thread is running.
+        if pbt.is_alive() is True:
+            print("PB Thread is up")
+        else:
+            print("PB Thread is down")
+            pbt.start()
+        
         # Here we determine how long its taken to process the frame(s) and then add some sleep to maintain the desired framerate (This helps with the output timing so the browser hits blank images MUCH less often) as well it reduces uneeded system load.
         processtime = end_time-start_time
         if processtime < frametime:
             sleeptime = frametime-processtime
             time.sleep(sleeptime)
+        
         # Here we copy the images to a second file after the sleep. This provides redundancy incase the browser tries to grab the image while its being written, we can provide a second image location for "onerror". (The reason why you see the "-.010" above is to account for the copy time. You might need to tweak for your system.
         shutil.copyfile(livedir + drtext + 'tmp.jpg', livedir + drtext + '.jpg')
         shutil.copyfile(livedir + ydtext + 'tmp.jpg', livedir + ydtext + '.jpg')
