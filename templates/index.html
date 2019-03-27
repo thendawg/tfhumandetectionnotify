@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>ML Cam Display</title>
+	<style>
+	body {
+		background-color: black;
+	}
+	</style>
+  </head>
+  <body>
+	<center>
+		<img id="mlcam" src="{{ url_for('video_feed1') }}" height="250" width="367"  \>
+		<div style="line-height:40%;">
+		<br>
+		</div>
+		<img id="mlcam2" src="{{ url_for('video_feed2') }}" height="250" width="367"  \>
+	</center>
+  </body>
+</html>
