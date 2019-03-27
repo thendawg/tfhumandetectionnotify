@@ -17,6 +17,8 @@ I have played with flask a bit in the past, but after learning A TON a long the 
 3) Run humandetectlotsothreadspbtflask.py instead of the other py. 
 4) Flask server will run on http://IP:5000 - feel free to edit the index.html to display the images however you like, I simply formatted it to replace the previous mlcamdisplay page so I can incorporate it into Organizr.
 
+Keep in mind, this version is for 2 streams only at this time, and adds all of the improvements added into the other recent variations. Now that I feel the primary code is fairly optimized, Ill start working on a varation for multiple cams all configurable from a php page in a single package. For now, feel free to play with the py and make it suite whatever you like, it's fairly well documented :)
+
 **THREADED TF BETA**
 
 Currently this relies on the same config and web output files as the other revs so I havent branched it yet but will soon as this moves forward. This beta is only compatible with 2 stream sources and will use multiple threads for tensorflow, essentially cutting the image processing time in half. Ive been testing with a 3GB 1060, and although it gives me messages about vram potentially impacting performance, Ive restricted it all the way down to 1GB VRAM and have seen no actual performance impact. In this iteration Ive also dramatically improved the stream capture threading.
