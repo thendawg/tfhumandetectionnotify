@@ -8,6 +8,15 @@ Changelog -
 
 In the future, I plan to make number of cameras and the location's name a configurable option. This will come with a php interface for easy config in the future, for now, if youre using a single stream, overwrite humandetectpushfoldersthreaded.py and config.py with humandetectpushfoldersthreadedsingle.py and configsingle.py respectively.
 
+**UPDATE 3/27 - A new method for realtime monitoring/web display**
+
+I have played with flask a bit in the past, but after learning A TON a long the way of building this project, I am back to it. It seems it is the perfect solution for streaming the jpgs to browser with minimal latency, no caches being overwhelmed, no browser eating memory, and best of all, it minimizes load on the system running inference when no user is connected. To use this method, follow the directions below...
+
+1) Install flask (pip install Flask)
+2) Make sure index.html is in the templates folder which should be at the same level as humandetectlotsothreadspbtflask.py
+3) Run humandetectlotsothreadspbtflask.py instead of the other py. 
+4) Flask server will run on http://IP:5000 - feel free to edit the index.html to display the images however you like, I simply formatted it to replace the previous mlcamdisplay page so I can incorporate it into Organizr.
+
 **THREADED TF BETA**
 
 Currently this relies on the same config and web output files as the other revs so I havent branched it yet but will soon as this moves forward. This beta is only compatible with 2 stream sources and will use multiple threads for tensorflow, essentially cutting the image processing time in half. Ive been testing with a 3GB 1060, and although it gives me messages about vram potentially impacting performance, Ive restricted it all the way down to 1GB VRAM and have seen no actual performance impact. In this iteration Ive also dramatically improved the stream capture threading.
