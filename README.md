@@ -1,4 +1,7 @@
 # tfhumandetectionnotify
+
+**UPDATE 2/13/2020** - IF YOURE HERE, CHECKOUT THE NEW V2 REPO - https://github.com/thendawg/PersonDetectandNotify - this one will no longer be maintained.
+
 Its a tensorflow python script that detects people in realtime from rtsp stream and pushes notifications - I need to come up with a better name...
 
 Preface: This is an ongoing project that started out solely for my use, so not everything has been commented/documented, although I believe at this point most everything is configurable via config.py.
